@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+
+  pg_shard_1:
+    image: postgres:17
+    container_name: pg_shard_1
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: walletdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - ../scripts/postgres/shard1/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c max_prepared_transactions=100
+    networks:
+      - dbnet
+
+  pg_shard_2:
+    image: postgres:17
+    container_name: pg_shard_2
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: walletdb
+    ports:
+      - "5434:5432"
+    volumes:
+      - ../scripts/postgres/shard2/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c max_prepared_transactions=100
+    networks:
+      - dbnet
+
+  pg_shard_3:
+    image: postgres:17
+    container_name: pg_shard_3
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: walletdb
+    ports:
+      - "5435:5432"
+    volumes:
+      - ../scripts/postgres/shard3/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c max_prepared_transactions=100
+    networks:
+      - dbnet
+
+  pg_coord_primary:
+    image: bitnamilegacy/postgresql-repmgr:17.6.0-debian-12-r2
+    container_name: pg_coord_primary
+    hostname: pg-coord-1
+    ports:
+      - "5450:5432"
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgrespass
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=admin
+      - POSTGRESQL_DATABASE=walletdb
+      - REPMGR_PASSWORD=repmgrpass
+      - REPMGR_PRIMARY_HOST=pg-coord-1
+      - REPMGR_NODE_NAME=pg-coord-1
+      - REPMGR_NODE_NETWORK_NAME=pg-coord-1
+      - REPMGR_PARTNER_NODES=pg-coord-1,pg-coord-2,pg-coord-3
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_NODE_ID=1
+    volumes:
+      - ../scripts/postgres/coord_replication/primary/10_schema.sql:/docker-entrypoint-initdb.d/10_schema.sql
+      - ../scripts/postgres/coord_replication/primary/20_fdw_routing.sql:/opt/bitnami/scripts/20_fdw_routing.sql
+      - ../scripts/postgres/coord_replication/primary/20_fdw_routing.sh:/docker-entrypoint-initdb.d/20_fdw_routing.sh
+    depends_on:
+      - pg_shard_1
+      - pg_shard_2
+      - pg_shard_3
+    networks:
+      - dbnet
+
+  pg_coord_replica1:
+    image: bitnamilegacy/postgresql-repmgr:17.6.0-debian-12-r2
+    container_name: pg_coord_replica1
+    hostname: pg-coord-2
+    ports:
+      - "5451:5432"
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgrespass
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=admin
+      - POSTGRESQL_DATABASE=walletdb
+      - REPMGR_PASSWORD=repmgrpass
+      - REPMGR_PRIMARY_HOST=pg-coord-1
+      - REPMGR_NODE_NAME=pg-coord-2
+      - REPMGR_NODE_NETWORK_NAME=pg-coord-2
+      - REPMGR_PARTNER_NODES=pg-coord-1,pg-coord-2,pg-coord-3
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_NODE_ID=2
+    depends_on:
+      - pg_coord_primary
+    networks:
+      - dbnet
+
+  pg_coord_replica2:
+    image: bitnamilegacy/postgresql-repmgr:17.6.0-debian-12-r2
+    container_name: pg_coord_replica2
+    hostname: pg-coord-3
+    ports:
+      - "5452:5432"
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgrespass
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=admin
+      - POSTGRESQL_DATABASE=walletdb
+      - REPMGR_PASSWORD=repmgrpass
+      - REPMGR_PRIMARY_HOST=pg-coord-1
+      - REPMGR_NODE_NAME=pg-coord-3
+      - REPMGR_NODE_NETWORK_NAME=pg-coord-3
+      - REPMGR_PARTNER_NODES=pg-coord-1,pg-coord-2,pg-coord-3
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_NODE_ID=3
+    depends_on:
+      - pg_coord_primary
+    networks:
+      - dbnet
+
+networks:
+  dbnet:
