@@ -1,0 +1,20 @@
+services:
+  pg_coord_replica2:
+    image: bitnamilegacy/postgresql-repmgr:17.6.0-debian-12-r2
+    container_name: pg_coord_replica2
+    hostname: pg-coord-3
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgrespass
+      - POSTGRESQL_USERNAME=admin
+      - POSTGRESQL_PASSWORD=admin
+      - POSTGRESQL_DATABASE=walletdb
+      - REPMGR_PASSWORD=repmgrpass
+      - REPMGR_PRIMARY_HOST=pg-coord-1
+      - REPMGR_NODE_NAME=pg-coord-3
+      - REPMGR_NODE_NETWORK_NAME=pg-coord-3
+      - REPMGR_PARTNER_NODES=pg-coord-1,pg-coord-2,pg-coord-3
+      - REPMGR_PORT_NUMBER=5432
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_NODE_ID=3

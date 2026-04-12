@@ -1,0 +1,13 @@
+services:
+  pg_shard_3:
+    image: postgres:17
+    container_name: pg_shard_3
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: walletdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../../scripts/postgres/shard3/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c listen_addresses='*' -c max_prepared_transactions=100
