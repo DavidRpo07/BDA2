@@ -5,7 +5,7 @@
 docker exec -it pg_coord_primary psql -U postgres -d walletdb
 
 docker exec -it pg_coord_replica1 env PGPASSWORD=postgrespass \
-psql -U postgres -d walletdb -c "ALTER SYSTEM SET synchronous_commit = 'on';"
+psql -U postgres -d walletdb -c "ALTER SYSTEM SET synchronous_commit = 'off';"
 
 docker exec -it pg_coord_replica1 env PGPASSWORD=postgrespass \
 psql -U postgres -d walletdb -c "ALTER SYSTEM SET synchronous_standby_names = '';"
