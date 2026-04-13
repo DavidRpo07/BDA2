@@ -2,24 +2,22 @@
 
 ## Paso 1: Conectarse al líder actual
 
-docker exec -it pg_coord_primary psql -U postgres -d walletdb
-
-docker exec -it pg_coord_replica1 env PGPASSWORD=postgrespass \
+docker exec -it NODO_LIDER env PGPASSWORD=postgrespass \
 psql -U postgres -d walletdb -c "ALTER SYSTEM SET synchronous_commit = 'off';"
 
-docker exec -it pg_coord_replica1 env PGPASSWORD=postgrespass \
+docker exec -it NODO_LIDER env PGPASSWORD=postgrespass \
 psql -U postgres -d walletdb -c "ALTER SYSTEM SET synchronous_standby_names = '';"
 
-docker exec -it pg_coord_replica1 env PGPASSWORD=postgrespass \
+docker exec -it NODO_LIDER env PGPASSWORD=postgrespass \
 psql -U postgres -d walletdb -c "SELECT pg_reload_conf();"
 
-docker exec -it pg_coord_replica1 env PGPASSWORD=postgrespass \
+docker exec -it NODO_LIDER env PGPASSWORD=postgrespass \
 psql -U postgres -d walletdb -c "SHOW synchronous_commit; SHOW synchronous_standby_names; SELECT application_name, state, sync_state FROM pg_stat_replication ORDER BY application_name;"
 
 
 ---
 
-## Paso 3: Verificar
+## Paso 2: Verificar
 
 SHOW synchronous_commit;
 SHOW synchronous_standby_names;
