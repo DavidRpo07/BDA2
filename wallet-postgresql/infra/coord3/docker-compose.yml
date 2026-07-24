@@ -1,6 +1,6 @@
 services:
   pg_coord_replica2:
-    image: bitnamilegacy/postgresql-repmgr:17.6.0-debian-12-r2
+    image: soldevelo/postgresql-repmgr:17.6.0-debian-12-r0
     container_name: pg_coord_replica2
     hostname: pg-coord-3
     ports:
